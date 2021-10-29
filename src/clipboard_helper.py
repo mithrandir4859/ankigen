@@ -13,8 +13,9 @@ class ClipboardMonitor:
     def __init__(self):
         self.previous = clipboard.paste()
 
-    def _store(self, word):
-        with open(f'{get_repo_path()}/data/clipboard_words.csv', 'a') as f:
+    @staticmethod
+    def _store(word):
+        with open(f'{get_repo_path()}/data/clipboard.csv', 'a') as f:
             f.write(word + '\n')
             print(word)
 
