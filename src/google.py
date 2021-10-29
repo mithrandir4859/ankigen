@@ -34,7 +34,7 @@ class AnkiCardCreator:
             if translation.word not in translations_deduplicated:
                 continue
             text = translation.word
-            if translation.confidence:
+            if translation.confidence and translation.confidence > 1:
                 text += f' ({translation.confidence})'
             words.append(text)
             if len(words) >= 5:
