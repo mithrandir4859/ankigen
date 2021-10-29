@@ -4,7 +4,7 @@ from collections import Counter
 
 from requests import HTTPError
 
-from config_gitignored import NAMESPACE
+from config_gitignored import NAMESPACE, EXCLUDE_WORDS_FROM
 from google import GoogleTranslator, GoogleResponseParser, CardEnricher, AnkiCardCreator
 from utils import get_repo_path
 
@@ -39,15 +39,23 @@ class BatchTranslator:
         self.stats = Counter()
         print(f'namespace={namespace}')
 
-    def _get_path(self, filename):
-        return f'{get_repo_path()}/data/namespaces/{self.namespace}/{filename}'
+    def _get_path(self, filename, namespace=None):
+        return f'{get_repo_path()}/data/namespaces/{namespace or self.namespace}/{filename}'
 
-    def _load_words(self):
+    def _load_words(self, namespace=None):
         words = set()
-        with open(self._get_path('words.txt')) as f:
+        with open(self._get_path('words.txt', namespace)) as f:
             for word in f.readlines():
                 words.add(word.strip())
         words.discard('')
+        return words
+
+    def _load_with_exclusion(self):
+        words = self._load_words()
+        self.stats['raw_words_before_exclusion'] = len(words)
+        for namespace in EXCLUDE_WORDS_FROM:
+            words -= self._load_words(namespace)
+        self.stats['raw_words_after_exclusion'] = len(words)
         return sorted(words)
 
     def _create_anki_cards(self, words):
@@ -82,8 +90,7 @@ class BatchTranslator:
                 traceback.print_exc()
 
     def run(self):
-        words = self._load_words()
-        self.stats['raw_words_count'] = len(words)
+        words = self._load_with_exclusion()
         print(f'Loaded {len(words)} words: {" ".join(words[:10])}...')
         try:
             with open(self._get_path('anki.cards'), 'w') as out:
