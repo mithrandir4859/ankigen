@@ -12,6 +12,7 @@ class GoogleTranslator:
         self.translator = Translator()
 
     def __call__(self, text):
+        assert text, text
         result = self.translator.translate(text, dest='ru', src='en')
         response = result._response
         if response.is_error:

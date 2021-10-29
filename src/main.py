@@ -1,10 +1,10 @@
 import shelve
 import traceback
 from collections import Counter
-from typing import List
 
 from requests import HTTPError
 
+from config_gitignored import NAMESPACE
 from google import GoogleTranslator, GoogleResponseParser, CardEnricher, AnkiCardCreator
 from utils import get_repo_path
 
@@ -32,25 +32,23 @@ class CachingProxyTranslator:
 
 
 class BatchTranslator:
-    def __init__(self, source_file='anki_words.txt', dest_file='cards.anki'):
+    def __init__(self, namespace):
         self.translator = CachingProxyTranslator(GoogleTranslator())
-        self.source_file = source_file
-        self.dest_file = dest_file
+        self.namespace = namespace
         self.card_creator = GoogleResponseParser()
         self.stats = Counter()
+        print(f'namespace={namespace}')
+
+    def _get_path(self, filename):
+        return f'{get_repo_path()}/data/namespaces/{self.namespace}/{filename}'
 
     def _load_words(self):
         words = set()
-        with open(f'{get_repo_path()}/data/{self.source_file}') as f:
+        with open(self._get_path('words.txt')) as f:
             for word in f.readlines():
                 words.add(word.strip())
         words.discard('')
         return sorted(words)
-
-    def _store_cards(self, cards: List[str]):
-        with open(f'{get_repo_path()}/data/{self.dest_file}', 'a') as f:
-            for card in cards:
-                f.write(card + '\n')
 
     def _create_anki_cards(self, words):
         for word in words:
@@ -88,7 +86,7 @@ class BatchTranslator:
         self.stats['raw_words_count'] = len(words)
         print(f'Loaded {len(words)} words: {" ".join(words[:10])}...')
         try:
-            with open(f'{get_repo_path()}/data/ankigen_output/{self.dest_file}', 'w') as out:
+            with open(self._get_path('anki.cards'), 'w') as out:
                 for card in self._create_anki_cards(words):
                     if card:
                         out.write(card + '\n')
@@ -99,4 +97,4 @@ class BatchTranslator:
 
 
 if __name__ == '__main__':
-    BatchTranslator().run()
+    BatchTranslator(NAMESPACE).run()
