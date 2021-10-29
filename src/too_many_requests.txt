@@ -1,0 +1,7 @@
+Cache has 232 entries
+15:41
+Prob done an 15:00
+
+Cache has 303 entries
+
+Prob 250 requests per hour.
