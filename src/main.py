@@ -54,7 +54,9 @@ class BatchTranslator:
         words = self._load_words()
         self.stats['raw_words_before_exclusion'] = len(words)
         for namespace in EXCLUDE_WORDS_FROM:
-            words -= self._load_words(namespace)
+            ex = self._load_words(namespace)
+            words -= ex
+            self.stats[f'words_from_{namespace}'] = len(ex)
         self.stats['raw_words_after_exclusion'] = len(words)
         return sorted(words)
 

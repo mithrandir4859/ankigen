@@ -85,7 +85,7 @@ class GoogleResponseParser:
                 confidence = cls._get_safely(t, index=3, default=1)
                 yield Translation(
                     word=word,
-                    confidence=max(confidence * 1000, 1),
+                    confidence=max((confidence or 0) * 1000, 1),
                     back_translations=back_translations,
                     pos=pos
                 )
