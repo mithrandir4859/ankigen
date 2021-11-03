@@ -12,10 +12,10 @@ class TestGoogleResponseParser:
     def translator(self):
         return GoogleTranslator()
 
-    # def test_allusions_api(self, translator):
-    #     response = translator('allusions')
-    #
-    #     assert response
+    def test_allusions_api(self, translator):
+        response = translator('stirred')
+
+        assert response
 
     def test_allusions(self, parser):
         json_response = [
