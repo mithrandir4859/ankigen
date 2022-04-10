@@ -21,6 +21,9 @@ class ClipboardMonitor:
 
     def _check_once(self):
         value = clipboard.paste()
+        value = value.strip()
+        if len(value) <= 2 or value.startswith('http'):
+            return
         if value == self.previous:
             return
         self.previous = value
