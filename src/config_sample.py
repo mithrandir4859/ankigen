@@ -1,4 +1,9 @@
-API_KEY = 'blahblah'
-MICROSOFT_SUBSCRIPTION_KEY = 'blahblah'
-LIMIT = 20
-namespace = '01'
+LIMIT = 100
+LIMIT = -1
+EXCLUDE_WORDS_FROM = {}
+
+
+NAMESPACE = '05_portuguese'
+LANGUAGE = 'pt'
+CACHE_NAME = 'portuguese'
+

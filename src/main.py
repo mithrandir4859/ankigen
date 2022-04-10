@@ -4,16 +4,16 @@ from collections import Counter
 
 from requests import HTTPError
 
-from config_gitignored import NAMESPACE, EXCLUDE_WORDS_FROM
+from config_gitignored import NAMESPACE, EXCLUDE_WORDS_FROM, CACHE_NAME, LANGUAGE
 from google import GoogleTranslator, GoogleResponseParser, CardEnricher, AnkiCardCreator
 from utils import get_repo_path
 
 
 class CachingProxyTranslator:
-    def __init__(self, delegate, cache_only=False):
+    def __init__(self, delegate, cache_only=False, cache_name=None):
         self.delegate = delegate
-        name = type(delegate).__name__.lower()
-        self.storage = shelve.open(f'{get_repo_path()}/data/dictionaries/{name}')
+        cache_name = cache_name or type(delegate).__name__.lower()
+        self.storage = shelve.open(f'{get_repo_path()}/data/dictionaries/{cache_name}')
         print(f'Cache has {len(self.storage)} entries')
         self.cache_only = cache_only
 
@@ -33,7 +33,7 @@ class CachingProxyTranslator:
 
 class BatchTranslator:
     def __init__(self, namespace):
-        self.translator = CachingProxyTranslator(GoogleTranslator())
+        self.translator = CachingProxyTranslator(GoogleTranslator(dest='uk', src=LANGUAGE), cache_name=CACHE_NAME)
         self.namespace = namespace
         self.card_creator = GoogleResponseParser()
         self.stats = Counter()
