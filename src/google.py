@@ -8,12 +8,14 @@ from src.utils import get_near_duplicates, get_near_duplicates_translit, remove_
 
 
 class GoogleTranslator:
-    def __init__(self):
+    def __init__(self, dest='ru', src='en'):
         self.translator = Translator()
+        self.dest = dest
+        self.src = src
 
     def __call__(self, text):
         assert text, text
-        result = self.translator.translate(text, dest='ru', src='en')
+        result = self.translator.translate(text, dest=self.dest, src=self.src)
         response = result._response
         if response.is_error:
             raise HTTPError(response.status_code, response)
