@@ -1,4 +1,5 @@
 import shelve
+import time
 import traceback
 from collections import Counter
 
@@ -67,36 +68,46 @@ class BatchTranslator:
         self.stats['raw_words_after_exclusion'] = len(words)
         return sorted(words)
 
+    def _create_card(self, word):
+        response = self.translator(word)
+        if not response:
+            print(f'skipping: {word}')
+            return
+        card = self.card_creator.create_card(word, response)
+        CardEnricher.enrich(card)
+        anki_card = AnkiCardCreator.create_card(card)
+        if not anki_card:
+            print(f'empty card for: {word}')
+        if len(card.too_similar) > 1:
+            # print(f'too similar: {word}, {card.too_similar}')
+            self.stats['has_too_similar'] += 1
+            self.stats['too_similar_count'] += len(card.too_similar)
+        if not card.translations:
+            print(f'No translations for: {word}')
+            self.stats['no_translation_count'] += 1
+        else:
+            self.stats['success_count'] += 1
+        return anki_card
+
     def _create_anki_cards(self, words):
         for word in words:
-            try:
-                response = self.translator(word)
-                if not response:
-                    print(f'skipping: {word}')
-                    continue
-                card = self.card_creator.create_card(word, response)
-                CardEnricher.enrich(card)
-                anki_card = AnkiCardCreator.create_card(card)
-                if not anki_card:
-                    print(f'empty card for: {word}')
-                yield anki_card
-                if len(card.too_similar) > 1:
-                    # print(f'too similar: {word}, {card.too_similar}')
-                    self.stats['has_too_similar'] += 1
-                    self.stats['too_similar_count'] += len(card.too_similar)
-                if not card.translations:
-                    print(f'No translations for: {word}')
-                    self.stats['no_translation_count'] += 1
-                else:
-                    self.stats['success_count'] += 1
-            except HTTPError as ex:
-                if ex.args[0] == 429:
-                    print('too many requests')
-                else:
+            while True:
+                try:
+                    if card := self._create_card(word):
+                        yield card
+                except HTTPError as ex:
+                    if ex.args[0] == 429:
+                        print('Too many requests, sleeping')
+                        time.sleep(60)
+                        continue
                     traceback.print_exc()
-                self.translator.cache_only = True
-            except Exception:
-                traceback.print_exc()
+                except Exception as ex:
+                    if 'Network is unreachable' in str(ex):
+                        print('Network is unreachable')
+                        time.sleep(3)
+                        continue
+                    traceback.print_exc()
+                break
 
     def run(self):
         # words = self._load_with_exclusion()
