@@ -50,6 +50,13 @@ class BatchTranslator:
         words.discard('')
         return words
 
+    def _load_simple_words(self, namespace=None):
+        words = list()
+        with open(self._get_path('words.txt', namespace)) as f:
+            for word in f.readlines():
+                words.append(word.strip())
+        return words
+
     def _load_with_exclusion(self):
         words = self._load_words()
         self.stats['raw_words_before_exclusion'] = len(words)
@@ -92,13 +99,15 @@ class BatchTranslator:
                 traceback.print_exc()
 
     def run(self):
-        words = self._load_with_exclusion()
+        # words = self._load_with_exclusion()
+        words = self._load_simple_words()
         print(f'Loaded {len(words)} words: {" ".join(words[:10])}...')
         try:
             with open(self._get_path('anki.cards'), 'w') as out:
                 for card in self._create_anki_cards(words):
                     if card:
                         out.write(card + '\n')
+                        print(f'Created: {card}')
         finally:
             self.translator.close()
             print(self.stats)
