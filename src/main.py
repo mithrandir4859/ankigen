@@ -34,7 +34,7 @@ class CachingProxyTranslator:
 
 class BatchTranslator:
     def __init__(self, namespace):
-        self.translator = CachingProxyTranslator(GoogleTranslator(dest='uk', src=LANGUAGE), cache_name=CACHE_NAME)
+        self.translator = CachingProxyTranslator(GoogleTranslator(dest='en', src=LANGUAGE), cache_name=CACHE_NAME)
         self.namespace = namespace
         self.card_creator = GoogleResponseParser()
         self.stats = Counter()
@@ -74,12 +74,11 @@ class BatchTranslator:
             print(f'skipping: {word}')
             return
         card = self.card_creator.create_card(word, response)
-        CardEnricher.enrich(card)
+        # CardEnricher.enrich(card)
         anki_card = AnkiCardCreator.create_card(card)
         if not anki_card:
             print(f'empty card for: {word}')
         if len(card.too_similar) > 1:
-            # print(f'too similar: {word}, {card.too_similar}')
             self.stats['has_too_similar'] += 1
             self.stats['too_similar_count'] += len(card.too_similar)
         if not card.translations:

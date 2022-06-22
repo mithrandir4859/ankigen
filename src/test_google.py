@@ -98,3 +98,20 @@ class TestGoogleResponseParserPortuguese2:
         card = parser.create_card('menina', response)
 
         assert {'дівчинка', 'дівчина'} == {t.word for t in card.translations}
+
+
+class TestGoogleResponseParserPortuguese3:
+    @pytest.fixture
+    def parser(self):
+        return GoogleResponseParser()
+
+    @pytest.fixture(scope='module')
+    def translator(self):
+        return GoogleTranslator(dest='en', src='pt')
+
+    def test_menina(self, translator, parser):
+        response = translator('propriedades')
+
+        card = parser.create_card('propriedades', response)
+
+        assert {'property', 'transfer', 'acres', 'properties'} == {t.word for t in card.translations}

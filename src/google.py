@@ -88,7 +88,7 @@ class GoogleResponseParser:
                 yield Translation(
                     word=word,
                     confidence=max((confidence or 0) * 1000, 1),
-                    back_translations=back_translations,
+                    back_translations=back_translations or list(),
                     pos=pos
                 )
 
@@ -107,8 +107,6 @@ class GoogleResponseParser:
         ]:
             # noinspection PyArgumentList
             card.translations += func(response)
-            if card.translations:
-                break
 
         if len(response) > 11:
             for pos, synonyms, _ in response[11] or list():
