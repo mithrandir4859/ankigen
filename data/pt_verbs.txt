@@ -1,0 +1,89 @@
+- Ter
+eu tenho
+tu tens
+ele / ela tem
+você tem
+nós temos
+eles / elas têm
+vocês têm
+
+- Ser
+eu sou
+tu és
+ele / ela é
+você é
+nós somos
+eles / elas são
+vocês são
+
+- Falar
+eu falo
+tu falas
+ele / ela fala
+você fala
+nós falamos
+eles / elas falam
+vocês falam
+
+- Cozinhar
+eu cozinho
+tu cozinhas
+ele / ela cozinha
+você cozinha
+nós cozinhamos
+eles / elas cozinham
+vocês cozinham
+
+- Cortar
+eu corto
+tu cortas
+ele / ela corta
+você corta
+nós cortamos
+eles / elas cortam
+vocês cortam
+
+- Amar
+eu amo
+tu amas
+ele / ela ama
+você ama
+nós amamos
+eles / elas amam
+vocês amam
+
+- Beber
+eu bebo
+tu bebes
+ele / ela bebe
+você bebe
+nós bebemos
+eles / elas bebem
+vocês bebem
+
+- Comer
+eu como
+tu comes
+ele / ela come
+você come
+nós comemos
+eles / elas comem
+vocês comem
+
+- Escrever
+eu escrevo
+tu escreves
+ele / ela escreve
+você escreve
+nós escrevemos
+eles / elas escrevem
+vocês escrevem
+
+- Ler
+eu leio
+tu lês
+ele / ela lê
+você lê
+nós lemos
+eles / elas leem
+vocês leem
