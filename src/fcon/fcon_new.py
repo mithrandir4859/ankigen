@@ -12,6 +12,8 @@ import logging
 
 from utils_i import setup_logger, wrap_into_list
 
+ANKISKIP_TAG = '#ankiskip'
+
 logger = logging.getLogger('root')
 
 
@@ -58,6 +60,7 @@ class FReaderFromFWiki(FReader):
         '**q**:'
     ]
     QUESTION_IDENTIFIER_REGEX = r'(?P<identifier>/\d{4} \w{3} \d\d, \d\d:\d\d \d{4}/)'
+    KILLER_TAGS = ANKISKIP_TAG, '#wip'
 
     def __init__(self, paths):
         self.paths = paths
@@ -82,6 +85,19 @@ class FReaderFromFWiki(FReader):
         for match in re.finditer(self._identifier_regex, text):
             return match.group('identifier')
 
+    def _is_good_card(self, card: Fcard):
+        if not card.answer or card.answer == '#todo':
+            logger.info(f'Card {card.identifier} was skipped because the answer is empty')
+            return
+        if card.answer.startswith('tags:') and '\n' not in card.answer:
+            logger.info(f'Card {card.identifier} was skipped because it contains only tags')
+            return
+        for tag in self.KILLER_TAGS:
+            if tag in card.answer or tag in card.question:
+                logger.info(f'Card {card.identifier} was skipped because it contains {ANKISKIP_TAG}')
+                return
+        return True
+
     def _create_card(self, text, filepath) -> (Fcard, None):
         original_text = text
         text = text.strip()
@@ -94,13 +110,15 @@ class FReaderFromFWiki(FReader):
             self.no_identifier_counter[filepath] += 1
             return
         question, answer = text.split(identifier)
-        return Fcard(
+        card = Fcard(
             identifier=identifier,
             question=question.strip(),
             answer=answer.strip(),
             original_text=original_text,
             original_file=filepath
         )
+        if self._is_good_card(card):
+            return card
 
     @wrap_into_list
     def _create_cards(self):
@@ -116,7 +134,7 @@ class FReaderFromFWiki(FReader):
                         content = f.read().strip()
                     if '---' not in content:
                         continue
-                    if content.startswith('#ankiskip'):
+                    if content.startswith(ANKISKIP_TAG):
                         logger.info(f'Skipping {file}')
                         continue
                     cards = content.split('---')
