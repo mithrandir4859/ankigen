@@ -164,7 +164,16 @@ class FWriter2AnkiImport(FWriter):
         self.paths = paths
 
     def write_cards(self, manager: FManager):
-        pass
+        for path_ in self.paths:
+            with open(path_, 'w') as out:
+                writer = csv.DictWriter(out, fieldnames='identifier front back'.split(), delimiter='\t')
+                logger.info(f'Creating {len(manager)} cards in {path_}')
+                for card in manager:
+                    writer.writerow(dict(
+                        identifier=card.identifier,
+                        front=card.question,
+                        back=card.answer
+                    ))
 
 
 class FWriter2Fwiki(FWriter):
