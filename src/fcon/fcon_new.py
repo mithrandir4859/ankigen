@@ -124,7 +124,7 @@ class FReaderFromFWiki(FReader):
                     cards = [c for c in cards if c]
                     if cards:
                         yield from cards
-                        logger.info(f'Found {len(cards)} in {filepath}')
+                        logger.info(f'Found {len(cards)} cards in {file}')
 
     def _verify_ids(self):
         ids = {c.identifier for c in self.cards}
@@ -151,7 +151,7 @@ class FReaderFromAnkiExport(FReader):
 
     @staticmethod
     def _to_markdown(html_text):
-        return html_text.replace('<br>', '\n')
+        return html_text.replace('<br>', '\n').replace('&nbsp;', ' ').replace('&gt;', '>').replace('&amp;', '&')
 
 
 class FWriter:
@@ -188,7 +188,7 @@ class FWriter2Fwiki(FWriter):
 
     @classmethod
     def _update_file(cls, original_file, cards_from_anki, existing_fwiki_manager):
-        logger.info(f'There {len(cards_from_anki)} cards for {original_file}')
+        logger.info(f'There are {len(cards_from_anki)} cards for {original_file.split("/")[-1]}')
         with open(original_file, 'r') as f:
             content = f.read()
         for anki_card in cards_from_anki:
@@ -198,16 +198,18 @@ class FWriter2Fwiki(FWriter):
             replacement = cls._to_str(anki_card)
             content = content.replace(existing_card.original_text, replacement)
         with open(original_file, 'w') as out:
-            out.write(content)
+            out.write(content.strip())
 
     @staticmethod
     def _to_str(card: Fcard):
         lines = [
             f'q: {card.question}',
             card.identifier,
-            card.answer
+            card.answer,
         ]
-        return '\n'.join(lines)
+        result = '\n'.join(lines)
+        result = f'\n{result}\n\n'
+        return result
 
     @staticmethod
     def _is_too_much_html(text):
@@ -221,7 +223,7 @@ class FWriter2Fwiki(FWriter):
         groups = defaultdict(list)
         for card in manager_from_anki:
             if too_much := cls._is_too_much_html(card.answer):
-                logger.error(f'Too much html: {too_much} for {card.identifier}')
+                logger.error(f'Too much html: {too_much} for {card.identifier}, q: {card.question[:66]}')
                 continue
             existing_card = existing_fwiki_manager.get(card.identifier)
             if not existing_card:
