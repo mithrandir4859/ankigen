@@ -145,9 +145,13 @@ class FReaderFromAnkiExport(FReader):
             for card in csv.DictReader(f, fieldnames='identifier front back'.split(), delimiter='\t'):
                 yield Fcard(
                     identifier=card['identifier'],
-                    question=card['front'],
-                    answer=card['back']
+                    question=self._to_markdown(card['front']),
+                    answer=self._to_markdown(card['back'])
                 )
+
+    @staticmethod
+    def _to_markdown(html_text):
+        return html_text.replace('<br>', '\n')
 
 
 class FWriter:
