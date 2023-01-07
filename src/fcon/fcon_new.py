@@ -1,3 +1,4 @@
+import csv
 import os
 import re
 from collections import Counter
@@ -132,7 +133,18 @@ class FReaderFromAnkiExport(FReader):
         self.path = path
 
     def read_cards(self) -> FManager:
-        pass
+        cards = self._read_cards()
+        return FManager(cards)
+
+    @wrap_into_list
+    def _read_cards(self):
+        with open(self.path) as f:
+            for card in csv.DictReader(f, fieldnames='identifier front back'.split(), delimiter='\t'):
+                yield Fcard(
+                    identifier=card['identifier'],
+                    question=card['front'],
+                    answer=card['back']
+                )
 
 
 class FWriter:

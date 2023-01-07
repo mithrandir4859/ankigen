@@ -32,13 +32,7 @@ class Fcon2Fwiki:
 
     @wrap_into_list
     def _create_cards(self):
-        with open(self._anki_cards_path) as f:
-            for card in csv.DictReader(f, fieldnames='identifier front back'.split(), delimiter='\t'):
-                yield Fcard(
-                    identifier=card['identifier'],
-                    question=card['front'],
-                    answer=card['back']
-                )
+        ...
 
     def run(self):
         self.cards_from_anki = self._create_cards()
