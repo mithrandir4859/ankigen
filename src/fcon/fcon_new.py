@@ -85,18 +85,14 @@ class FReaderFromFWiki(FReader):
         for match in re.finditer(self._identifier_regex, text):
             return match.group('identifier')
 
-    def _is_good_card(self, card: Fcard):
+    def _get_bad_card_reason(self, card: Fcard):
         if not card.answer or card.answer == '#todo':
-            logger.info(f'Card {card.identifier} was skipped because the answer is empty')
-            return
+            return 'the answer is empty'
         if card.answer.startswith('tags:') and '\n' not in card.answer:
-            logger.info(f'Card {card.identifier} was skipped because it contains only tags')
-            return
+            return f'it contains only tags: {card.answer}'
         for tag in self.KILLER_TAGS:
             if tag in card.answer or tag in card.question:
-                logger.info(f'Card {card.identifier} was skipped because it contains {ANKISKIP_TAG}')
-                return
-        return True
+                return f'it contains {tag}'
 
     def _create_card(self, text, filepath) -> (Fcard, None):
         original_text = text
@@ -117,8 +113,10 @@ class FReaderFromFWiki(FReader):
             original_text=original_text,
             original_file=filepath
         )
-        if self._is_good_card(card):
-            return card
+        if reason := self._get_bad_card_reason(card):
+            logger.info(f'Card {card.identifier} was skipped because {reason}')
+            return
+        return card
 
     @wrap_into_list
     def _create_cards(self):
