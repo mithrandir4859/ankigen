@@ -5,7 +5,7 @@ from fcon.fcon_new import FconDi
 
 @pytest.fixture(scope='module')
 def di_2anki():
-    base = '/home/mithrandir/Projects/ankigen/fcon/tests/'
+    base = '/home/mithrandir/Projects/ankigen/src/fcon/tests/'
 
     return FconDi(config={
         'direction': '2anki',
@@ -27,4 +27,6 @@ def di_2anki():
 
 def test_fmanager(di_2anki: FconDi):
     fmanager = di_2anki.reader().read_cards()
+
     assert fmanager
+    assert len(fmanager) == 3
