@@ -25,13 +25,19 @@ class FManager:
     def __iter__(self):
         yield from self._cards.values()
 
+    def keys(self):
+        return set(self._cards.keys())
+
+    def values(self):
+        return self._cards.values()
+
     def __getitem__(self, item):
         if isinstance(item, int):
             item = self._ids[item]
         return self._cards[item]
 
     def __str__(self):
-        return f'FManager(len={len(self)}'
+        return f'FManager(len={len(self)})'
 
     __repr__ = __str__
 
@@ -147,7 +153,7 @@ class FWriter2Fwiki(FWriter):
         self.reader = reader
 
     def write_cards(self, manager: FManager):
-        fwiki_manager = self.reader.load_cards()
+        fwiki_manager = self.reader.read_cards()
 
         pass
 
@@ -158,7 +164,7 @@ class Workflow:
         self.writer = writer
 
     def run(self):
-        f_manager = self.reader.load_cards()
+        f_manager = self.reader.read_cards()
         self.writer.write_cards(f_manager)
         logger.info('Workflow finished')
 
