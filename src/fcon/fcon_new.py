@@ -1,8 +1,8 @@
 import csv
 import os
 import re
-from collections import Counter
-from typing import List
+from collections import Counter, defaultdict
+from typing import List, Iterable, Set, Collection
 
 from config_new import fcon_config
 from di import Singleton
@@ -20,24 +20,27 @@ class FManager:
         self._cards = {c.identifier: c for c in cards}
         self._ids = sorted(self._cards.keys())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._cards)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Fcard]:
         yield from self._cards.values()
 
-    def keys(self):
+    def keys(self) -> Set[str]:
         return set(self._cards.keys())
 
-    def values(self):
+    def values(self) -> Collection[Fcard]:
         return self._cards.values()
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Fcard:
         if isinstance(item, int):
             item = self._ids[item]
         return self._cards[item]
 
-    def __str__(self):
+    def get(self, key) -> Fcard:
+        return self._cards.get(key)
+
+    def __str__(self) -> str:
         return f'FManager(len={len(self)})'
 
     __repr__ = __str__
@@ -164,10 +167,42 @@ class FWriter2Fwiki(FWriter):
     def __init__(self, reader: FReaderFromFWiki):
         self.reader = reader
 
-    def write_cards(self, manager: FManager):
-        fwiki_manager = self.reader.read_cards()
+    def write_cards(self, manager_from_anki: FManager):
+        existing_fwiki_manager = self.reader.read_cards()
+        intersection = manager_from_anki.keys() & existing_fwiki_manager.keys()
+        logger.info(
+            f'existing in fwiki: {len(existing_fwiki_manager)}, '
+            f'exported from Anki: {len(manager_from_anki)}, '
+            f'intersection: {len(intersection)}'
+        )
+        grouped_anki_cards = self._get_anki_cards_grouped_by_file(
+            existing_fwiki_manager, manager_from_anki
+        )
+        logger.info(f'Matched fcards in {len(grouped_anki_cards)} files')
+        for original_file, cards in grouped_anki_cards.items():
+            self._update_file(original_file, cards, existing_fwiki_manager)
 
-        pass
+    @staticmethod
+    def _update_file(original_file, cards_from_anki, existing_fwiki_manager):
+        with open(original_file, 'r') as f:
+            content = f.read()
+        for anki_card in cards_from_anki:
+            existing_card = existing_fwiki_manager[anki_card.identifier]
+            assert existing_card.original_file == original_file
+            assert existing_card.original_text in content
+
+            print('why')
+
+    @staticmethod
+    def _get_anki_cards_grouped_by_file(existing_fwiki_manager, manager_from_anki):
+        groups = defaultdict(list)
+        for card in manager_from_anki:
+            existing_card = existing_fwiki_manager.get(card.identifier)
+            if not existing_card:
+                logger.warning(f'There is no fwiki card for {card.identifier}')
+                continue
+            groups[existing_card.original_file].append(card)
+        return dict(groups)
 
 
 class Workflow:
