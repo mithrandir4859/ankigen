@@ -118,29 +118,32 @@ class FReaderFromFWiki(FReader):
             return
         return card
 
-    @wrap_into_list
-    def _create_cards(self):
+    def _get_paths(self):
         for path_ in self.paths:
             if not os.path.exists(path_):
                 raise FileNotFoundError(path_)
             for subdir, dirs, files in os.walk(path_):
                 for file in files:
                     filepath = subdir + os.sep + file
-                    if not filepath.endswith('.md'):
-                        continue
-                    with open(filepath) as f:
-                        content = f.read().strip()
-                    if '---' not in content:
-                        continue
-                    if content.startswith(ANKISKIP_TAG):
-                        logger.info(f'Skipping {file} because it starts with {ANKISKIP_TAG}')
-                        continue
-                    cards = content.split('---')
-                    cards = [self._create_card(t, filepath) for t in cards]
-                    cards = [c for c in cards if c]
-                    if cards:
-                        yield from cards
-                        logger.info(f'Found {len(cards)} cards in {file}')
+                    yield file, filepath
+
+    @wrap_into_list
+    def _create_cards(self):
+        for file, filepath in self._get_paths():
+            if not filepath.endswith('.md'):
+                continue
+            with open(filepath) as f:
+                content = f.read().strip()
+            if '---' not in content:
+                continue
+            if content.startswith(ANKISKIP_TAG):
+                logger.info(f'Skipping {file} because it starts with {ANKISKIP_TAG}')
+                continue
+            cards = [self._create_card(t, filepath) for t in content.split('---')]
+            cards = [c for c in cards if c]
+            if cards:
+                yield from cards
+                logger.info(f'Found {len(cards)} cards in {file}')
 
     def _verify_ids(self):
         ids = {c.identifier for c in self.cards}
