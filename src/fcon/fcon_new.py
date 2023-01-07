@@ -186,21 +186,43 @@ class FWriter2Fwiki(FWriter):
         for original_file, cards in grouped_anki_cards.items():
             self._update_file(original_file, cards, existing_fwiki_manager)
 
-    @staticmethod
-    def _update_file(original_file, cards_from_anki, existing_fwiki_manager):
+    @classmethod
+    def _update_file(cls, original_file, cards_from_anki, existing_fwiki_manager):
+        logger.info(f'There {len(cards_from_anki)} cards for {original_file}')
         with open(original_file, 'r') as f:
             content = f.read()
         for anki_card in cards_from_anki:
             existing_card = existing_fwiki_manager[anki_card.identifier]
             assert existing_card.original_file == original_file
             assert existing_card.original_text in content
-
-            print('why')
+            replacement = cls._to_str(anki_card)
+            content = content.replace(existing_card.original_text, replacement)
+        with open(original_file, 'w') as out:
+            out.write(content)
 
     @staticmethod
-    def _get_anki_cards_grouped_by_file(existing_fwiki_manager, manager_from_anki):
+    def _to_str(card: Fcard):
+        lines = [
+            f'q: {card.question}',
+            card.identifier,
+            card.answer
+        ]
+        return '\n'.join(lines)
+
+    @staticmethod
+    def _is_too_much_html(text):
+        count = min(text.count('<'), text.count('>'))
+        if count > 10:
+            return count
+        return 0
+
+    @classmethod
+    def _get_anki_cards_grouped_by_file(cls, existing_fwiki_manager, manager_from_anki):
         groups = defaultdict(list)
         for card in manager_from_anki:
+            if too_much := cls._is_too_much_html(card.answer):
+                logger.error(f'Too much html: {too_much} for {card.identifier}')
+                continue
             existing_card = existing_fwiki_manager.get(card.identifier)
             if not existing_card:
                 logger.warning(f'There is no fwiki card for {card.identifier}')
