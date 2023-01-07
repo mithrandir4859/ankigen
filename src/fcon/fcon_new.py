@@ -72,7 +72,7 @@ class FReaderFromFWiki(FReader):
         cards = self._create_cards()
         self._verify_ids()
         for filename, count in self.no_identifier_counter.most_common():
-            logger.info(f'{filename}, {count}')
+            logger.info(f'Found {count} cards w/o identifier in {filename.split("/")[-1]}')
         return FManager(cards)
 
     def _get_q_marker(self, text):
@@ -133,7 +133,7 @@ class FReaderFromFWiki(FReader):
                     if '---' not in content:
                         continue
                     if content.startswith(ANKISKIP_TAG):
-                        logger.info(f'Skipping {file}')
+                        logger.info(f'Skipping {file} because it starts with {ANKISKIP_TAG}')
                         continue
                     cards = content.split('---')
                     cards = [self._create_card(t, filepath) for t in cards]
