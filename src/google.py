@@ -16,6 +16,7 @@ class GoogleTranslator:
     def __call__(self, text):
         assert text, text
         result = self.translator.translate(text, dest=self.dest, src=self.src)
+        # noinspection PyProtectedMember
         response = result._response
         if response.is_error:
             raise HTTPError(response.status_code, response)

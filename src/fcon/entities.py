@@ -1,6 +1,14 @@
+import datetime
 from typing import List
 
 from pydantic import BaseModel, Field
+
+
+class Metadata(BaseModel):
+    author_id: str = 'Mithrandir'
+    created_ts: datetime.datetime
+    creation_algorithm_id: str = ''
+    source: str = ''  # url or local filepath
 
 
 class Fcard(BaseModel):

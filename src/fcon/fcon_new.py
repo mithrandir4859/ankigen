@@ -162,6 +162,7 @@ class FReaderFromAnkiExport(FReader):
     def _read_cards(self):
         with open(self.path) as f:
             for card in csv.DictReader(f, fieldnames='identifier front back'.split(), delimiter='\t'):
+                # noinspection PyTypeChecker
                 yield Fcard(
                     identifier=card['identifier'],
                     question=self._to_markdown(card['front']),
