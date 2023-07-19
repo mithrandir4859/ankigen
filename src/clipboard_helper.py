@@ -34,13 +34,7 @@ class ClipboardMonitor:
         elif '\n' in value:
             print(f'   value has newline character, skipping')
             return
-        # value = value.split()
-        # target_value = value[0]
-        # if not target_value.isalpha():
-        #     print(f'   bad value: {value}')
-        #     return
         self._store(value)
-        # pronounce(target_value)
         beep.beep(2)
 
     def serve(self):

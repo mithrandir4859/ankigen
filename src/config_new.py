@@ -14,6 +14,12 @@ __default_config = {
             f'{base}Projects/ankigen_files/import_to_anki.txt'
         ],
         'export_from_anki_path': f'{base}/Projects/ankigen_files/export_from_anki.txt',
+    },
+    'cbgen': {
+        'output_path': f'{base}Documents/sensitive/cbgen/cbgen.md'
+    },
+    'keys': {
+        "openai_key": "aa-aaaaaaaaaaaaaaaá"
     }
 }
 
