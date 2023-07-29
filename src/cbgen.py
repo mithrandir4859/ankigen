@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from textwrap import dedent
 import time
@@ -46,6 +47,7 @@ class ClipboardMonitor:
         self.previous = clipboard.paste().strip()
         self.llm = OpenAI(openai_api_key=config['keys']['openai_key'])
         self.fwiki_filepath = config['cbgen']['output_path']
+        self.thread_pool = ThreadPoolExecutor(max_workers=8)
 
     def _check_once(self):
         value = clipboard.paste()
@@ -89,21 +91,43 @@ class ClipboardMonitor:
 
         questions = self.llm.predict(question_prompt, max_tokens=1000)
         return '\n'.join([self._remove_question_number(q) for q in questions.split('\n')]).strip()
+    
+    def _improve_formatting(self, text):
+        formatting_prompt = dedent(f"""
+            Improve the formatting of the following text. Keep paragraphs,
+            but remove unnecessary line breaks. Keep proper indentation for python code, if there is any.
+            Use markdown formatting where appropriate, especially for code blocks.
+            DO NOT ADD ANYTHING EXTRA TO THE TEXT. Here is the text:
+                                   
+            {text}
+        """).strip()
+
+        return  self.llm.predict(formatting_prompt, max_tokens=2000)
 
     def _handle(self, text):
-        questions = self._generate_questions(text)
+        started = time.time()
+        questions = self.thread_pool.submit(self._generate_questions, text)
+        text = self.thread_pool.submit(self._improve_formatting, text)
+        questions = questions.result()
+        text = text.result()
+        print(f'LLM calls took {time.time() - started:.2f} seconds')
+
+        fcard = [
+            f'q: {questions}',
+            self._get_identifier(),
+            '',
+            text,
+            '',
+            '---'
+        ]
         
-        fcard = dedent(f'''
-            q: {questions}
-            {self._get_identifier()}
-
-            {text}
-
-            ---
-        ''').strip()
+        fcard = '\n'.join(fcard)
         with open(self.fwiki_filepath, 'a') as f:
             f.write(fcard + '\n' * 2)
         print(fcard)
+        print(f'Wrote to {self.fwiki_filepath}')
+        print()
+
 
 
     def serve(self):
